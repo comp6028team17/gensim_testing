@@ -4,16 +4,6 @@ import numpy as np
 from collections import Counter
 import string
 
-def processSitesJL():
-	with open('sites.jl', 'r') as f:
-		with open('sites2.jl', 'w') as o:
-			for l in f.readlines():
-		 		data = json.loads(l)
-		 		del data['html']
-		 		del data['wordcounts']
-		 		o.write(json.dumps(data)+"\n")
-
-
 def loadSplitFiles(fname):
 	abet = string.ascii_lowercase
 	for a in abet:
@@ -57,22 +47,21 @@ def buildNewDictionary(fname = 'docs/sites.jl.', saveas = 'dict.dict'):
 	dictionary.save(saveas)
 	return dictionary
 
-
-# for i, x in enumerate(loadSplitJsonLines('docs/sites.jl.')):
-# 	if i == 2: break
-# 	print x
-
-
 def getADoc(n, f = 'docs/sites.jl.'):
-	''' Get a single document '''
-	with open(f, 'r') as f:
+	''' Get a single document ''' 
+	char = string.ascii_lowercase[n / 100]
+	fname = f+'a'+char
+	ind = n % 100
+	with open(fname, 'r') as f:
 		for i, l in enumerate(f.readlines()):
-			if i == n:
+			if i == ind:
 				return json.loads(l)['words']
 
-#processSitesJL()
 
-#dictionary = buildNewDictionary()
-dictionary = corpora.Dictionary.load('dict.dict')
+try: 
+	dictionary = corpora.Dictionary.load('dict.dict')
+except IOError:
+	dictionary = buildNewDictionary()
 
-# print dictionary.doc2bow(getADoc(20))
+
+print dictionary.doc2bow(getADoc(205))

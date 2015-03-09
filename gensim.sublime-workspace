@@ -4,8 +4,24 @@
 		"selected_items":
 		[
 			[
+				"sto",
+				"stoplist1"
+			],
+			[
+				"l",
+				"load_or_create"
+			],
+			[
 				"dic",
-				"dictionary〔variable〕"
+				"dictionary"
+			],
+			[
+				"corp",
+				"corpora〔module〕"
+			],
+			[
+				"load",
+				"loadSplitJsonLines〔function〕"
 			],
 			[
 				"proce",
@@ -18,10 +34,6 @@
 			[
 				"file",
 				"file_name〔variable〕"
-			],
-			[
-				"sto",
-				"stock_name〔variable〕"
 			],
 			[
 				"stoc",
@@ -94,10 +106,6 @@
 			[
 				"sp",
 				"speakersAPI"
-			],
-			[
-				"l",
-				"log"
 			],
 			[
 				"cu",
@@ -504,9 +512,35 @@
 	"buffers":
 	[
 		{
+			"file": "testing.py",
+			"settings":
+			{
+				"buffer_size": 286,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "lib/__init__.py",
 			"settings":
 			{
 				"buffer_size": 0,
+				"line_ending": "Unix",
+				"name": "__init__.py"
+			}
+		},
+		{
+			"file": "lib/jsoncorpus.py",
+			"settings":
+			{
+				"buffer_size": 2358,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "lib/datastuff.py",
+			"settings":
+			{
+				"buffer_size": 845,
 				"line_ending": "Unix"
 			}
 		}
@@ -514,15 +548,15 @@
 	"build_system": "",
 	"command_palette":
 	{
-		"height": 225.0,
+		"height": 333.0,
 		"selected_items":
 		[
 			[
-				"spaces",
+				"space",
 				"Indentation: Convert to Spaces"
 			],
 			[
-				"space",
+				"spaces",
 				"Indentation: Convert to Spaces"
 			],
 			[
@@ -599,10 +633,20 @@
 	},
 	"expanded_folders":
 	[
-		"/Users/joe/COMP6208project/gensim_testing"
+		"/Users/joe/COMP6208project/gensim_testing",
+		"/Users/joe/COMP6208project/gensim_testing/lib"
 	],
 	"file_history":
 	[
+		"/Users/joe/COMP6208project/gensim_testing/lib/datastuff.py",
+		"/Users/joe/COMP6208project/gensim_testing/lib/stop_words.json",
+		"/Users/joe/COMP6208project/gensim_testing/stop_words.json",
+		"/Library/Python/2.7/site-packages/gensim/corpora/dictionary.py",
+		"/Library/Python/2.7/site-packages/gensim/corpora/textcorpus.py",
+		"/Users/joe/COMP6208project/gensim_testing/datastuff.py",
+		"/Users/joe/COMP6208project/gensim_testing/jsoncorpus.py",
+		"/Users/joe/COMP6208project/gensim_testing/corpora.mm",
+		"/Users/joe/COMP6208project/gensim_testing/lib/jsoncorups.py",
 		"/Users/joe/COMP6208project/gensim_testing/gensim_testing.sublime-workspace",
 		"/Users/joe/COMP6208project/gensim_testing/testing.py",
 		"/Users/joe/Downloads/pebble.py",
@@ -721,20 +765,11 @@
 		"/Users/joe/dank-web/.idea/workspace.xml",
 		"/Users/joe/dank-web/dist/app/dank/partials/GET :api:jobs:update?time=blahblah",
 		"/Users/joe/dank-web/po/de.po",
-		"/Users/joe/dank-web/.idea/scopes/scope_settings.xml",
-		"/Users/joe/dank-web/dist/app/out.js",
-		"/Users/joe/dank-web/dist/app/index.html",
-		"/Users/joe/dank-web/dist/app/dank/controllers/jobs/jobsCtrl.js",
-		"/Users/joe/dank-web/.gitignore",
-		"/Users/joe/dank-web/dist/app/dank/partials/job.html",
-		"/Users/joe/dank-web/dist/app/dank/partials/speakers.html",
-		"/Users/joe/dank-web/po/template.pot",
-		"/Users/joe/dank-web/dist/app/dank/services/agents.js",
-		"/Users/joe/dank-web/dist/app/dank/services/speakers.js"
+		"/Users/joe/dank-web/.idea/scopes/scope_settings.xml"
 	],
 	"find":
 	{
-		"height": 23.0
+		"height": 37.0
 	},
 	"find_in_files":
 	{
@@ -755,6 +790,11 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"the",
+			"'",
+			"the",
+			"load",
+			"testing",
 			"6",
 			"depth",
 			"JSON",
@@ -877,12 +917,7 @@
 			"query",
 			"html5",
 			"modernizr-2.6.2.min.js",
-			"\"",
-			"partial",
-			"partials",
-			"translati",
-			"toBeD",
-			"Updater"
+			"\""
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -925,11 +960,42 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 3,
 			"sheets":
 			[
 				{
 					"buffer": 0,
+					"file": "testing.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 286,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								245,
+								245
+							]
+						],
+						"settings":
+						{
+							"auto_complete": false,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "lib/__init__.py",
 					"semi_transient": false,
 					"settings":
 					{
@@ -946,7 +1012,70 @@
 						],
 						"settings":
 						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
+							"auto_complete": false,
+							"auto_name": "__init__.py",
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "lib/jsoncorpus.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2358,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								351,
+								351
+							]
+						],
+						"settings":
+						{
+							"auto_complete": false,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "lib/datastuff.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 845,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								638,
+								638
+							]
+						],
+						"settings":
+						{
+							"auto_complete": false,
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -1000,7 +1129,7 @@
 	"project": "gensim.sublime-project",
 	"replace":
 	{
-		"height": 42.0
+		"height": 66.0
 	},
 	"save_all_on_build": true,
 	"select_file":

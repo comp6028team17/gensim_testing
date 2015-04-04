@@ -3,13 +3,13 @@ import json
 from gensim import corpora, models, similarities
 
 #load text corpus from json doc
-jsonDoc = 'topics.sport.linux.computers.art.history.language.society.json'
+jsonDoc = 'sports.arts.computers.buisness.management.home.society.science.json'
 
 def loadJSONcorpus(filename):
     doc_words = []
     #load JSON file
     with open(filename) as jFile:
-        jData = json.load(jile)
+        jData = json.load(jFile)
         #for each document in JSON doc arr
         for document in jData:
             #for each item in words
@@ -19,7 +19,7 @@ def loadJSONcorpus(filename):
 
 def createDictionary(corpus_texts):
     dictionary = corpora.Dictionary(corpus_texts)
-    dictionary.save(filename + '.dict')
+    dictionary.save(jsonDoc + '.dict')
     return dictionary
 
 def loadDictionary(filename):
@@ -30,11 +30,11 @@ def createCorpus(filename):
     dictionary = createDictionary(corpus_texts)
     corpus = [dictionary.doc2bow(text) for text in corpus_texts]
     #save corpus
-    corpora.MmCorpus.serialize(filename + '.mm', corpus)
+    corpora.MmCorpus.serialize(jsonDoc + '.mm', corpus)
     return corpus, dictionary
 
 def loadCorpus(filename):
-    return gensim.corpora.MmCorpus(filename + '.mm')
+    return gensim.corpora.MmCorpus(filename + '.mm'), gensim.corpora.Dictionary.load(filename + '.dict')
 
 
 
@@ -42,13 +42,12 @@ def loadCorpus(filename):
 #Set log conf
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
-#load word mappings
-# id2word = loadDictionary(jsonDoc)
+mm, id2word = loadCorpus(jsonDoc)
+# mm, id2word = createCorpus(jsonDoc)
 
-#load corpus iterator
-# mm = gensim.corpora.MmCorpus(tfidfFname)
-# mm = loadCorpus(jsonDoc)
-mm, id2word = createCorpus(jsonDoc)
+
+##NEED TO FILTER STOP WORDS
+# tfidf = models.TfidfModel(mm)
 
 print(mm)
 

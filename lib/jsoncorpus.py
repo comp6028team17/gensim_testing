@@ -5,71 +5,113 @@ from collections import Counter
 import os
 import re
 import traceback
+from HTMLParser import HTMLParser
+from bs4 import BeautifulSoup, Comment
+from collections import namedtuple
+import itertools
 
-class JsonLinesCorpus(corpora.textcorpus.TextCorpus):
-    def __init__(self, name, fname):
-        self.fname = fname
-        self.name = name
-        super(JsonLinesCorpus, self).__init__("") # not super sure why 
+class TagStripper(HTMLParser):
+    """ Class which strips data from HTML tags """
+    def __init__(self):
+        self.reset()
+        self.fed = []
+    def handle_data(self, d):
+        self.fed.append(d)
+    def get_data(self):
+        return ''.join(self.fed)
+
+    @classmethod
+    def strip_tags(cls, html):
+        s = TagStripper()
+        s.feed(html)
+        return s.get_data()
+
+SiteWords = namedtuple('SiteWords', ['body', 'meta'])
+def process_html(html):
+    """ Given a HTML page, return an object containing... {
+        'body': a list of visible words in the body,
+        'meta': a dictionary of lists of the words in the content of the description, author and keywords tags
+    }"""
+
+    # Parse with BeautifulSoup
+    soup = BeautifulSoup(html.lower())
+
+    # Remove all <script> and <style tags> and <!-- comments -->
+    for item in soup.findAll('script'):
+        item.extract()
+    for item in soup.findAll('style'):
+        item.extract()
+    for item in soup.findAll(text=lambda text:isinstance(text, Comment)):
+        item.extract()
+
+    # Define a function to strip all punctuation from a string
+    strip_punctuation = lambda x: re.sub(r'[^A-Za-z0-9- ]|(\b[\d-]+\b)', '', x)
+
+    # Define a function to check of if a tag is a meta tag we care about
+    is_meta_tag = lambda tag: tag.name == 'meta' and tag.attrs.get('name', None) in ['description', 'keywords','author']
+
+    # Strip all tags from the body, strip all punctuation from the text
+    # Then split in to a list of words
+    body_content = strip_punctuation(TagStripper.strip_tags(str(soup.body))).split()
 
 
-    def get_filterwords(self, name, fname):
-        dictfname = '{}.full.dict'.format(name)
+    # Build a dictionary from the metatags metadata, linking name->content
+    meta_tags = {
+        tag.attrs['name']: strip_punctuation(tag.attrs.get('content', '')).split()
+        for tag in soup.findAll(is_meta_tag)
+    }
 
-        try:
-            dictionary = corpora.Dictionary.load(dictfname)
-        except IOError:
-            print "Building filter list..."
-            dictionary = corpora.Dictionary(d['words'] for d in datastuff.loadSplitJsonLines(fname+"."))
-            dictionary.compactify()
-            dictionary.save(dictfname)
+    # Add the title to the metadata
+    meta_tags['title'] = strip_punctuation(soup.head.title.text).split() if soup.head and soup.head.title else ''
 
-        filterwords = set((dictionary[x] for x in (tokenid for tokenid, docfreq in dictionary.dfs.iteritems() if docfreq == 1))).union(datastuff.stoplist)
-        
-        return filterwords
+    return SiteWords(body_content, meta_tags)
 
 
-    def get_texts(self):
-        self.length = 0
-        filterwords = self.get_filterwords(self.name, self.fname)
 
-        def wordok(w):
-            return w not in filterwords and len(w) > 1 and re.match('^[\d-]+$', w) == None
+def get_processed_data(fnames, max_i=None):
+    """ Process all the files, ignoring files with unicode problems... """
 
-        print "Building corpora..."
-        for j in datastuff.loadSplitJsonLines(self.fname+"."):
+    all_html = (d['html'] for d in datastuff.loadSplitJsonLines(fnames+"."))
+    for i, html in enumerate(all_html):
+        if i%20 == 0: print i
+        if i==max_i: break
+        try: yield process_html(html)
+        except UnicodeDecodeError: continue
 
-            words = [w for w in j['words'] if wordok(w)]
-            yield words
-            self.length += 1
-
-    def __len__(self):
-        return self.length
-
-def load_or_create(name, fname):
-    ''' Build an MM corpus and dictionary out of a directory full of json-lines files '''
-    mmname = "{}.mm".format(name)
-    dname = "{}.dict".format(name)
+def load_or_create(fnames):
+    data = None
     try:
-        corpus = corpora.mmcorpus.MmCorpus(mmname)
-        dictionary = corpora.Dictionary.load(dname)
-        print "Succesfully loaded {} and {}".format(mmname, dname)
+        # Load a saved dictionary if it exists
+        dictionary = corpora.Dictionary.load('dictionary.dict')
     except IOError:
-        corp = JsonLinesCorpus(name, fname)
-        corpora.mmcorpus.MmCorpus.serialize(mmname, corp)
-        corp.dictionary.save(dname)
-        corpus = corpora.mmcorpus.MmCorpus(mmname)
-        dictionary = corpora.Dictionary.load(dname)
-        print "Succesfully created {} and {}".format(mmname, dname)
+        print "Building new dictionary"
+        if not data:
+            data = list(get_processed_data(fnames))
 
-    return (corpus, dictionary)
+        # Otherwise, build a new gensim dictionary
+        dictionary = corpora.Dictionary((
+                (word for word in itertools.chain(words.body, *words.meta.values())
+                    if word not in datastuff.stoplist)
+                for words in data))
+        dictionary.filter_extremes()
+        dictionary.compactify()
+        dictionary.save('dictionary.dict')
 
+    try:
+        # Load the Matrix Market corpus files if they exist
+        body_corpus = corpora.mmcorpus.MmCorpus('body_corpus.mm')
+        meta_corpus = corpora.mmcorpus.MmCorpus('meta_corpus.mm')
+    except IOError:
+        print "Building new corpora"
+        if not data:
+            data = list(get_processed_data(fnames))
+        # Otherwise, construct the corpora using the dictionary
+        body_data = (dictionary.doc2bow(doc) for doc in ((word for word in words.body if word not in datastuff.stoplist) for words in data))
+        body_corpus = corpora.mmcorpus.MmCorpus.serialize('test_body.mm', body_data, id2word=dictionary)
+        meta_data = (dictionary.doc2bow(doc) for doc in ((word for word in itertools.chain(*words.meta.values()) if word not in datastuff.stoplist) for words in data))
+        meta_corpus = corpora.mmcorpus.MmCorpus.serialize('test_meta.mm', meta_data, id2word=dictionary)
 
-def main():
-    """ Test! """
-    corpus, dictionary = load_or_create("../corpus_test", "../docs/sites.jl")
-    print corpus[0]
-
+    return (dictionary, body_corpus, meta_corpus)
 
 if __name__ == '__main__':
-    main()
+    load_or_create("../docs/sites.jl")

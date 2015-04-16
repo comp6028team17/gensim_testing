@@ -638,6 +638,7 @@
 	],
 	"file_history":
 	[
+		"/Users/joe/COMP6208project/gensim_testing/corpus.mm",
 		"/Users/joe/COMP6208project/gensim_testing/lib/datastuff.py",
 		"/Users/joe/COMP6208project/gensim_testing/lib/stop_words.json",
 		"/Users/joe/COMP6208project/gensim_testing/stop_words.json",
@@ -764,8 +765,7 @@
 		"/Users/joe/dank-web/.idea/dank-web.iml",
 		"/Users/joe/dank-web/.idea/workspace.xml",
 		"/Users/joe/dank-web/dist/app/dank/partials/GET :api:jobs:update?time=blahblah",
-		"/Users/joe/dank-web/po/de.po",
-		"/Users/joe/dank-web/.idea/scopes/scope_settings.xml"
+		"/Users/joe/dank-web/po/de.po"
 	],
 	"find":
 	{
@@ -960,7 +960,7 @@
 	"groups":
 	[
 		{
-			"selected": 3,
+			"selected": 2,
 			"sheets":
 			[
 				{
@@ -1036,8 +1036,8 @@
 						"selection":
 						[
 							[
-								351,
-								351
+								1542,
+								1542
 							]
 						],
 						"settings":
@@ -1048,10 +1048,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 344.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
@@ -1081,7 +1081,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 1,
 					"type": "text"
 				}
 			]

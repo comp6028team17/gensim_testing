@@ -118,16 +118,17 @@ def load_or_create(fnames):
         meta_corpus = corpora.mmcorpus.MmCorpus.serialize('meta_corpus.mm', meta_data, id2word=dictionary)
 
     try:
-        with open('dmoz.json') as f:
+        with open('meta.json') as f:
             dmoz_data = json.load(f)
     except IOError:
-        print "Building dmoz data file"
+        print "Building meta data file"
         data = loaddata(data)
         dmoz_data = {
             'urls': [d.url for d in data], 
-            'topics': [d.topics for d in data]
+            'dmoz_categories': [d.topics for d in data],
+            'meta': [d.meta for d in data]
             }
-        with open('dmoz.json', 'w') as f:
+        with open('meta.json', 'w') as f:
             json.dump(dmoz_data, f)
 
     print "Done."

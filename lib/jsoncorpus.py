@@ -18,7 +18,7 @@ class TagStripper(HTMLParser):
     def handle_data(self, d):
         self.fed.append(d)
     def get_data(self):
-        return ''.join(self.fed)
+        return ' '.join(self.fed)
 
     @classmethod
     def strip_tags(cls, html):
@@ -79,6 +79,7 @@ def get_processed_data(fnames, max_i=None):
         except UnicodeDecodeError: continue
 
 def load_or_create(fnames):
+    """ Return the dictionary, body corpus and meta corpus, creating them if they don't exist """
     data = None
     try:
         # Load a saved dictionary if it exists
@@ -107,10 +108,10 @@ def load_or_create(fnames):
             data = list(get_processed_data(fnames))
         # Otherwise, construct the corpora using the dictionary
         body_data = (dictionary.doc2bow(doc) for doc in ((word for word in words.body if word not in datastuff.stoplist) for words in data))
-        body_corpus = corpora.mmcorpus.MmCorpus.serialize('test_body.mm', body_data, id2word=dictionary)
+        body_corpus = corpora.mmcorpus.MmCorpus.serialize('body_corpus.mm', body_data, id2word=dictionary)
         meta_data = (dictionary.doc2bow(doc) for doc in ((word for word in itertools.chain(*words.meta.values()) if word not in datastuff.stoplist) for words in data))
-        meta_corpus = corpora.mmcorpus.MmCorpus.serialize('test_meta.mm', meta_data, id2word=dictionary)
-
+        meta_corpus = corpora.mmcorpus.MmCorpus.serialize('meta_corpus.mm', meta_data, id2word=dictionary)
+    print "Done."
     return (dictionary, body_corpus, meta_corpus)
 
 if __name__ == '__main__':

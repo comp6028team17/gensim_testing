@@ -68,12 +68,12 @@ def process_html(html):
 
 
 
-def get_processed_data(fnames, max_i=None):
+def get_processed_data(fnames, max_i=None, print_i = False):
     """ Process all the files, ignoring files with unicode problems... """
 
     all_html = (d['html'] for d in datastuff.loadSplitJsonLines(fnames+"."))
     for i, html in enumerate(all_html):
-        if i%20 == 0: print i
+        if print_i and i%20 == 0: print i
         if i==max_i: break
         try: yield process_html(html)
         except UnicodeDecodeError: continue
@@ -87,7 +87,7 @@ def load_or_create(fnames):
     except IOError:
         print "Building new dictionary"
         if not data:
-            data = list(get_processed_data(fnames))
+            data = list(get_processed_data(fnames, print_i = True))
 
         # Otherwise, build a new gensim dictionary
         dictionary = corpora.Dictionary((
@@ -105,7 +105,7 @@ def load_or_create(fnames):
     except IOError:
         print "Building new corpora"
         if not data:
-            data = list(get_processed_data(fnames))
+            data = list(get_processed_data(fnames, print_i = True))
         # Otherwise, construct the corpora using the dictionary
         body_data = (dictionary.doc2bow(doc) for doc in ((word for word in words.body if word not in datastuff.stoplist) for words in data))
         body_corpus = corpora.mmcorpus.MmCorpus.serialize('body_corpus.mm', body_data, id2word=dictionary)

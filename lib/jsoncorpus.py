@@ -48,8 +48,9 @@ def process_html(html):
     # Define a function to strip all punctuation from a string
     strip_punctuation = lambda x: re.sub(r'[^A-Za-z0-9- ]|(\b[\d-]+\b)', '', x)
 
-    # Define a function to check of if a tag is a meta tag we care about
-    is_meta_tag = lambda tag: tag.name == 'meta' and tag.attrs.get('name', None) in ['description', 'keywords','author']
+        # Define a function to check of if a tag is a meta tag we care about
+    is_meta_tag = lambda tag: tag.name == 'meta' and tag.attrs.get('name', None) in ['description','author']
+    is_keyword_tag = lambda tag: tag.name == 'meta' and tag.attrs.get('name', None) in ['keywords']
 
     # Strip all tags from the body, strip all punctuation from the text
     # Then split in to a list of words
@@ -61,6 +62,12 @@ def process_html(html):
         tag.attrs['name']: strip_punctuation(tag.attrs.get('content', '')).split()
         for tag in soup.findAll(is_meta_tag)
     }
+
+    meta_tags.update({
+        # Split list of keywords by commas, after removing any whitespace around commas
+        tag.attrs['name']: re.sub(r',\s([\w\s]*)',r',\1',tag.attrs.get('content', '')).split(',')
+        for tag in soup.findAll(is_keyword_tag)
+    })
 
     # Add the title to the metadata
     meta_tags['title'] = strip_punctuation(soup.head.title.text).split() if soup.head and soup.head.title else ''

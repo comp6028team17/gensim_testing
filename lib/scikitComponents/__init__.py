@@ -49,18 +49,19 @@ class MetaMatrixBuilder(BaseEstimator, TransformerMixin):
 		self.topic_min_members = 0
 
 	def fit(self, X, y=None):
+		lists = [set(x.get('keyphrases', [])) | set(x.get('keywords', [])) for x in X]
+		sanitize = lambda word: word.strip()
+		counts = collections.Counter(sanitize(word) for word in itertools.chain(*lists))
+		stopwords = ['','and','to','for','the','of']
+		self.featureset = [x for x in counts if counts[x] > 4 and x not in stopwords]
 		return self
 
 	def transform(self, X, y=None):
 		""" Convert a TransformedCorpus object to a matrix of corpus vs topic index """
-		lists = [set(x.get('keyphrases', [])) | set(x.get('keywords', [])) for x in X]
-		sanitize = lambda word: word.strip()
-		counts = collections.Counter(sanitize(word) for word in itertools.chain(*lists))
-		words = [x for x in counts if counts[x] > 4 and counts[x] < len(X)-4 and x != '']
-
-		features = np.zeros((len(X), len(words)), dtype=int)
-		for i, doc in enumerate(lists):
-		    features[i,[words.index(x) for x in doc if x in words]] += 1
+		features = np.zeros((len(X), len(self.featureset)), dtype=int)
+		allmeta = [set(x.get('keyphrases', [])) | set(x.get('keywords', [])) for x in X]
+		for i, meta in enumerate(allmeta):
+			features[i,[self.featureset.index(x) for x in meta if x in self.featureset]] += 1 
 
 		# return features[:,np.sum(features > 0, axis=0)>self.topic_min_members]
 		return features

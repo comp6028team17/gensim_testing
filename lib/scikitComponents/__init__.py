@@ -12,7 +12,12 @@ class LDAModel(BaseEstimator, TransformerMixin):
 
 	def fit(self, corpus, y=None):
 		""" Build an LDA Model using a gensim corpus """
-		self._model = gensim.models.ldamodel.LdaModel(corpus=corpus, id2word=self.dictionary, num_topics = self.num_topics, passes = 1, chunksize = 100)
+		self._model = gensim.models.ldamodel.LdaModel(
+			corpus=corpus, 
+			id2word=self.dictionary,
+			num_topics = self.num_topics,
+			passes = 1,
+			chunksize = 100)
 		return self
 
 	def transform(self, corpus, y=None):

@@ -4,6 +4,7 @@ from itertools import combinations_with_replacement
 import inspect, os
 from bs4 import BeautifulSoup
 import numpy as np
+import sklearn
 
 with open(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+"/stop_words.json") as f:
 	stoplist = set(json.load(f))
@@ -46,3 +47,16 @@ def main():
 if __name__ == '__main__':
 	main()
 
+
+def encode_dmoz_categories(dmoz_categories):
+	# Build a list of all top-level topics
+	topcategories = set(topic[0] for topic in dmoz_categories)
+	# Represent the topics in an alternative way
+	heirarchal_categories = lambda max_depth: [['; '.join(topics[:ti+1]) for ti, t in enumerate(topics) if ti < max_depth] for topics in dmoz_categories]
+	# Top categories
+	top_categories = [x[0] for x in heirarchal_categories(1)]
+	# Encoder
+	dmoz_encoder = sklearn.preprocessing.LabelEncoder().fit(top_categories)
+	# Classes
+	classes = dmoz_encoder.transform(top_categories)
+	return (classes, top_categories, dmoz_encoder)

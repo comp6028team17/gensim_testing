@@ -28,6 +28,13 @@ class LDAModel(BaseEstimator, TransformerMixin):
 	def model(self):
 		return self._model
 
+class ItemPicker(BaseEstimator, TransformerMixin):
+	def __init__(self, index):
+		self.index = index
+	def fit(self, X, y=None):
+		return self
+	def transform(self, X, y=None):
+		return [x[self.index] for x in X]
 
 class TopicMatrixBuilder(BaseEstimator, TransformerMixin):
 	def __init__(self, num_topics, topic_min_members = 0):

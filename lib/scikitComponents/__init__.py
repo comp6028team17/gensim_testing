@@ -131,6 +131,7 @@ class MetaMatrixBuilder(BaseEstimator, TransformerMixin):
         for i, meta in enumerate(allmeta):
             tokens = (x for x in (self.featureset.get(word, None)
                                   for word in meta) if x is not None)
-            features[i, :] += np.bincount(list(tokens), minlength=len(self.featureset))
+            for t in tokens:
+                features[i, t] += 1
 
         return features

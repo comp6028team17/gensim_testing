@@ -103,6 +103,9 @@ class MetaSanitiser(BaseEstimator, TransformerMixin):
                 lists.append(meta.get('keyphrases', []))
             if self.meta_selection_flags & 4:
                 lists.append(meta.get('description', []))
+            if self.meta_selection_flags & 8:
+                lists.append(meta.get('title', []))
+
             words = (sanitize(word) for word in list(itertools.chain.from_iterable(lists)))
             filtered = [word for word in words if word not in stoplist and word != ""]
 

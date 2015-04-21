@@ -54,7 +54,10 @@ def process_html(html):
         item.extract()
 
     # Define a function to strip all punctuation from a string
-    strip_punctuation = lambda x: re.sub(r'[^A-Za-z0-9- ]|(\b[\d-]+\b)', '', x)
+    def strip_punctuation(word):
+        word = re.sub('[,;./\\|?()]', ' ', word.strip())
+        word = re.sub(r'([^A-Za-z0-9- ]|(^\b[\d-]+\b$))', '', word)
+        return word
 
     # Define a function to check of if a tag is a meta tag we care about
     is_meta_tag = lambda tag: tag.name == 'meta' and tag.attrs.get(

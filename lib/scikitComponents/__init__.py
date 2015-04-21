@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 from sklearn.base import BaseEstimator, TransformerMixin
 import gensim
 import numpy as np
@@ -6,7 +8,7 @@ import collections
 import os
 import inspect
 import json
-
+import re
 # Load the stopwrod list. Should probably find a nicer way of doign this!
 # (import datastuff module, or something)
 with open(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + "/../stop_words.json") as f:
@@ -70,51 +72,62 @@ class TopicMatrixBuilder(BaseEstimator, TransformerMixin):
 
         return features[:, np.sum(features > 0, axis=0) > self.topic_min_members]
 
-
-class MetaMatrixBuilder(BaseEstimator, TransformerMixin):
-
-    def __init__(self, use_keywords=True, use_keyphrases=True, use_description=False, min_word_count=4, stem=False):
-        self.use_keywords = use_keywords
-        self.use_keyphrases = use_keyphrases
-        self.use_description = use_description
-        self.min_word_count = min_word_count
-        self.featureset = []
+class MetaSanitiser(BaseEstimator, TransformerMixin):
+    def __init__(self, stem = False, meta_selection_flags=7):
         self.stem = stem
-        if stem:
-            import nltk.stem.porter
-            stemmer = nltk.stem.porter.PorterStemmer()
-            self.sanitize = lambda word: stemmer.stem(word.strip())
-        else:
-            self.sanitize = lambda word: word.strip()
+        self.meta_selection_flags = meta_selection_flags
 
-    def extract_meta(self, X):
+    def fit(self, X, y = None):
+        return self
+
+    def transform(self, X, y = None):
         """ Extract the required bits of metadata from each document objet in X 
             returns a generator of generators of words
         """
+        # Set up a sanitizer
+        if self.stem:
+            # We can stem words, i.e. remove suffixies.
+            # this means that words like 'sport', 'sporting' and 'sports'
+            # would all be treated as 'sport'
+            import nltk.stem.porter
+            stemmer = nltk.stem.porter.PorterStemmer()
+            sanitize = lambda word: stemmer.stem(re.sub(r'\s+', r' ', word.strip()))
+        else:
+            sanitize = lambda word: re.sub(r'\s+', r' ', word.strip())
+        out = []
         for meta in X:
             lists = []
-            if self.use_keywords:
+            if self.meta_selection_flags & 1:
                 lists.append(meta.get('keywords', []))
-            if self.use_keyphrases:
+            if self.meta_selection_flags & 2:
                 lists.append(meta.get('keyphrases', []))
-            if self.use_description:
+            if self.meta_selection_flags & 4:
                 lists.append(meta.get('description', []))
+            words = (sanitize(word) for word in list(itertools.chain.from_iterable(lists)))
+            filtered = [word for word in words if word not in stoplist and word != ""]
 
-            yield (self.sanitize(word) for word in itertools.chain(*lists))
+            out.append(filtered)
+
+        return out
+
+class MetaMatrixBuilder(BaseEstimator, TransformerMixin):
+    def __init__(self, min_word_count = 4):
+        self.min_word_count = min_word_count
+        self.featureset = []
+           
 
     def fit(self, X, y=None):
         """ Given a list of metadata objects, generate maps between tokens and IDs """
-        lists = self.extract_meta(X)
-        counts = collections.Counter(itertools.chain(*lists))
+        counts = collections.Counter(itertools.chain(*X))
         self.featureset = {
             w: i for i, w in
             enumerate(set(x for x in counts 
-                          if counts[x] > self.min_word_count and x not in stoplist and x != ""))
+                          if counts[x] > self.min_word_count))
         }
         self.inverse_featureset = {
             i: w for i, w in
             enumerate(set(x for x in counts 
-                          if counts[x] > self.min_word_count and x not in stoplist and x != ""))
+                          if counts[x] > self.min_word_count))
         }
 
         return self
@@ -127,8 +140,7 @@ class MetaMatrixBuilder(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         """ Convert a TransformedCorpus object to a matrix of corpus vs topic index """
         features = np.zeros((len(X), len(self.featureset)), dtype=int)
-        allmeta = self.extract_meta(X)
-        for i, meta in enumerate(allmeta):
+        for i, meta in enumerate(X):
             tokens = (x for x in (self.featureset.get(word, None)
                                   for word in meta) if x is not None)
             for t in tokens:

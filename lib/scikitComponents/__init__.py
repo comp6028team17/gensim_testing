@@ -54,23 +54,36 @@ class ItemPicker(BaseEstimator, TransformerMixin):
 
 class TopicMatrixBuilder(BaseEstimator, TransformerMixin):
 
-    def __init__(self, num_topics, topic_min_members=0):
+    def __init__(self, num_topics, topic_min_members=0, keep_all = False):
         self.num_topics = num_topics
         self.topic_min_members = 0
-
+        self.keep_all = keep_all
     def fit(self, X, y=None):
         return self
 
     def transform(self, transformed_corpus, y=None):
         """ Convert a TransformedCorpus object to a matrix of corpus vs topic index """
         features = np.zeros((len(transformed_corpus), self.num_topics))
-        totals = np.zeros(self.num_topics)
         for i, doc in enumerate(transformed_corpus):
             for topic, p in doc:
                 features[i, topic] = p
-                totals[topic] += p
+        if self.keep_all:
+            return features
+        else:
+            return features[:, np.sum(features > 0, axis=0) > self.topic_min_members]
 
-        return features[:, np.sum(features > 0, axis=0) > self.topic_min_members]
+
+class TFIDFModel(BaseEstimator, TransformerMixin):
+    def __init__(self, id2word):
+        self.id2word = None
+        self.tfidf = None
+    def fit(self, X, y=None):
+        self.tfidf = gensim.models.tfidfmodel.TfidfModel(X, id2word=self.id2word)
+        return self
+    def transform(self, X, y=None):
+        return self.tfidf[X]
+
+
 
 class MetaSanitiser(BaseEstimator, TransformerMixin):
     def __init__(self, stem = False, meta_selection_flags=7):

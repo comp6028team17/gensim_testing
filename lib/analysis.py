@@ -3,6 +3,7 @@ import numpy as np
 import collections
 
 def plot_confusion_matrix(cm, title='Confusion matrix', labels=None, cmap=plt.cm.Blues):
+    """ Plot a confusion matrix as a matrix of coloured squares """
     labels = labels if labels is not None else range(len(cm))
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.title(title)
@@ -16,6 +17,7 @@ def plot_confusion_matrix(cm, title='Confusion matrix', labels=None, cmap=plt.cm
 
 
 def plot_proportion_investigation(predicted, dmoz_encoder, y_test, adjust_labels=False):
+    """ Look at the proportion of items in a test set, versus their scores """
     category_scores = collections.defaultdict(float)
     category_counts = collections.defaultdict(float)
 
@@ -39,3 +41,20 @@ def plot_proportion_investigation(predicted, dmoz_encoder, y_test, adjust_labels
         plt.text(tx, ty, s)
         i*=-1
     plt.show()
+
+def accuracy_of_top_n_guesses(clf, X, y, n=None):
+    """ Given a scikit estimator, input data and output classes,
+    return how well the algorithm finds the correct classes in its
+    top 1, 2, 3 guesses ... top N guesses."""
+
+    n = n or max(y)
+    probs = clf.predict_proba(X)
+    labels = np.argsort(probs, axis=1)[:, -n:][:, ::-1]
+    results = np.array([label == row for label, row in zip(y, labels)])
+
+    scores = [
+        np.sum(np.max(results[:, 0:i], axis=1)) / float(len(results))
+        for i in range(1, n+1)
+    ]
+    return scores
+

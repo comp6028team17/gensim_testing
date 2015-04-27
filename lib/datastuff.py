@@ -7,7 +7,7 @@ import numpy as np
 import sklearn
 
 with open(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+"/stop_words.json") as f:
-	stoplist = set(json.load(f))
+    stoplist = set(json.load(f))
 
 def make_proportional(X, y, min_size = 100):
     counts = np.bincount(y)
@@ -19,44 +19,54 @@ def make_proportional(X, y, min_size = 100):
     ).flatten()
     return (X[indices], y[indices])
 
+def tt_split(X, y, proportional=False, min_size = 1, test_size = 0.25):
+    if proportional:
+        prop_X, prop_y = make_proportional(np.array(X), y, min_size=min_size)
+        ind_train, ind_test = next(iter(sklearn.cross_validation.StratifiedShuffleSplit(prop_y, test_size = test_size)))
+        X_train , X_test, y_train, y_test = (prop_X[ind_train], prop_X[ind_test], prop_y[ind_train], prop_y[ind_test])
+    else:
+        X_train, X_test, y_train, y_test = sklearn.cross_validation.train_test_split(X, y)
+
+    return (X_train, X_test, y_train, y_test)
+
 def loadSplitJsonLines(fname):
-	''' Load every file matching the sequence fname.aa, fname.ab ... fname.zz
-		Parse each line in each file one by one as JSON, and yield it
-	'''
-	numyielded = 0
-	for s in (''.join(x) for x in combinations_with_replacement(string.ascii_lowercase, 2)):
-		try:
-			loadfn = fname+s
-			with open(loadfn, 'r') as f:
-				numyielded += 1
-				for l in f.readlines():
-					yield json.loads(l)
-			
-		except IOError as e:
-			if numyielded == 0:
-				raise Exception("No files matching {}.aa".format(fname))
-			return
+    ''' Load every file matching the sequence fname.aa, fname.ab ... fname.zz
+        Parse each line in each file one by one as JSON, and yield it
+    '''
+    numyielded = 0
+    for s in (''.join(x) for x in combinations_with_replacement(string.ascii_lowercase, 2)):
+        try:
+            loadfn = fname+s
+            with open(loadfn, 'r') as f:
+                numyielded += 1
+                for l in f.readlines():
+                    yield json.loads(l)
+            
+        except IOError as e:
+            if numyielded == 0:
+                raise Exception("No files matching {}.aa".format(fname))
+            return
 
 
 def main():
-	""" Print an example of one loaded file """
-	for x in loadSplitJsonLines('../docs/sites.jl.'):
-		print x
-		break
+    """ Print an example of one loaded file """
+    for x in loadSplitJsonLines('../docs/sites.jl.'):
+        print x
+        break
 
 if __name__ == '__main__':
-	main()
+    main()
 
 
 def encode_dmoz_categories(dmoz_categories):
-	# Build a list of all top-level topics
-	topcategories = set(topic[0] for topic in dmoz_categories)
-	# Represent the topics in an alternative way
-	heirarchal_categories = lambda max_depth: [['; '.join(topics[:ti+1]) for ti, t in enumerate(topics) if ti < max_depth] for topics in dmoz_categories]
-	# Top categories
-	top_categories = [x[0] for x in heirarchal_categories(1)]
-	# Encoder
-	dmoz_encoder = sklearn.preprocessing.LabelEncoder().fit(top_categories)
-	# Classes
-	classes = dmoz_encoder.transform(top_categories)
-	return (classes, top_categories, dmoz_encoder)
+    # Build a list of all top-level topics
+    topcategories = set(topic[0] for topic in dmoz_categories)
+    # Represent the topics in an alternative way
+    heirarchal_categories = lambda max_depth: [['; '.join(topics[:ti+1]) for ti, t in enumerate(topics) if ti < max_depth] for topics in dmoz_categories]
+    # Top categories
+    top_categories = [x[0] for x in heirarchal_categories(1)]
+    # Encoder
+    dmoz_encoder = sklearn.preprocessing.LabelEncoder().fit(top_categories)
+    # Classes
+    classes = dmoz_encoder.transform(top_categories)
+    return (classes, top_categories, dmoz_encoder)

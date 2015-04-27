@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import collections
+import sklearn
 
 def plot_confusion_matrix(cm, title='Confusion matrix', labels=None, cmap=plt.cm.Blues):
     """ Plot a confusion matrix as a matrix of coloured squares """
@@ -48,8 +49,12 @@ def accuracy_of_top_n_guesses(clf, X, y, n=None):
     top 1, 2, 3 guesses ... top N guesses."""
 
     n = n or max(y)
-    probs = clf.predict_proba(X)
-    labels = np.argsort(probs, axis=1)[:, -n:][:, ::-1]
+    if hasattr(clf, 'predict_proba'):
+        probs = clf.predict_proba(X)
+        labels = np.argsort(probs, axis=1)[:, -n:][:, ::-1]
+    else:
+        labels = np.fliplr(np.argsort(clf.decision_function(X)))
+    
     results = np.array([label == row for label, row in zip(y, labels)])
 
     scores = [
@@ -58,3 +63,6 @@ def accuracy_of_top_n_guesses(clf, X, y, n=None):
     ]
     return scores
 
+
+def print_score_accuracy(scores):
+    print "Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2)

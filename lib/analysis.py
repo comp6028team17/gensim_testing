@@ -5,16 +5,34 @@ import sklearn
 
 def plot_confusion_matrix(cm, title='Confusion matrix', labels=None, cmap=plt.cm.Blues):
     """ Plot a confusion matrix as a matrix of coloured squares """
+
+    plt.figure(figsize=(7, 6))
+    im = cm.astype(float)
+
+    im[np.where(cm!=0)] = np.log(cm[cm!=0])
+
     labels = labels if labels is not None else range(len(cm))
-    plt.imshow(cm, interpolation='nearest', cmap=cmap)
-    plt.title(title)
-    plt.colorbar()
+    plt.imshow(im, interpolation='nearest', cmap=cmap)
+    if title: plt.title(title)
+    #plt.colorbar()
     tick_marks = np.arange(len(labels))
     plt.xticks(tick_marks, labels, rotation=90)
     plt.yticks(tick_marks, labels)
     plt.tight_layout()
+
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
+    for y in range(cm.shape[1]):
+        rowsum = float(np.sum(cm[y, :]))
+        if rowsum > 0:
+            txt = 'Precision: {:.2}'.format(cm[y, y] / rowsum)
+            plt.text(cm.shape[0]+0.3, y, txt, va='center')
+        for x in range(cm.shape[0]):
+            if im[y, x] > (np.max(im)*0.5):
+                col = 'w'
+            else:
+                col = 'k'
+            plt.text(x, y, cm[y, x], color = col, ha='center', va='center', weight='bold')
 
 
 def plot_proportion_investigation(predicted, dmoz_encoder, y_test, adjust_labels=False):

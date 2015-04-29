@@ -1,5 +1,8 @@
 import sklearn
+import sklearn.neighbors
 from sklearn.pipeline import Pipeline, FeatureUnion
+import sklearn.grid_search
+
 from . import *
 def make_lda_pipeline(dictionary, num_topics):
     return Pipeline([
@@ -22,12 +25,17 @@ def make_tfidf_matrix_pipeline(dictionary):
 
 
 def make_classifier(dictionary, classifier = 'svc', body_kind = 'tfidf', meta_kind='tfidf', meta_selection_flags = 13, lda_num = 30):
-    if classifier == 'svc': 
-        classifier = sklearn.svm.LinearSVC()
-    elif classifier == 'svcproba': 
-        classifier = sklearn.svm.SVC(kernel='linear', probability=True, max_iter=1000)
+    if classifier == 'svc_gridsearch': 
+        param_grid = [{'C': [0.1, 0.16, 0.2, 0.3, 0.4, 0.5, 1]}]
+        #param_grid = [{'C': [0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19]}]
+        svc = sklearn.svm.LinearSVC(class_weight='auto')
+        clf = sklearn.grid_search.GridSearchCV(svc, param_grid, verbose=3)
+    elif classifier == 'svc':
+        clf = sklearn.svm.LinearSVC(class_weight='auto', C = 0.16)
+    elif classifier == 'knn': 
+        clf = sklearn.neighbors.KNeighborsClassifier()
     elif classifier == 'trees':
-        classifier = sklearn.ensemble.ExtraTreesClassifier(random_state=0, n_estimators=100, oob_score=True, bootstrap=True, n_jobs=4)
+        clf = sklearn.ensemble.ExtraTreesClassifier(random_state=0, n_estimators=100, oob_score=True, bootstrap=True, n_jobs=4)
 
     body_pipe = meta_pipe = None
     
@@ -55,7 +63,7 @@ def make_classifier(dictionary, classifier = 'svc', body_kind = 'tfidf', meta_ki
         
     return Pipeline([
         ('union', FeatureUnion(features)), 
-        ('clf', classifier)])
+        ('clf', clf)])
 
 
 

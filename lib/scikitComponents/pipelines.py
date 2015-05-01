@@ -14,7 +14,7 @@ def make_lda_pipeline(dictionary, num_topics):
 def make_meta_count_pipeline(meta_selection_flags):
     return Pipeline([
         ('meta_sanitiser', MetaSanitiser(meta_selection_flags = meta_selection_flags)),
-        ('matrix_builder', MetaMatrixBuilder())
+        ('matrix_builder', CountMatrixBuilder())
         ])
 
 def make_tfidf_matrix_pipeline(dictionary):
@@ -23,18 +23,24 @@ def make_tfidf_matrix_pipeline(dictionary):
         ('matrix', TopicMatrixBuilder(len(dictionary.items()), keep_all=True))
         ])
 
+def make_body_count_pipeline(dictionary):
+    return Pipeline([
+        ('matrix_builder', CorpusCount(dictionary))
+        ])
 
 
 def make_classifier(dictionary, classifier = 'svc', body_kind = 'tfidf', meta_kind='tfidf', meta_selection_flags = 13, lda_num = 20):
     clfnames = {
     'svc': 'SVM',
     'svc_gridsearch': 'SVM',
-    'trees': 'DecisionTrees',
-    'nb': 'NaiveBayes'
+    'trees': 'D.Trees',
+    'nb': 'N.Bayes',
+    'nb_bin': 'BernoulliBayes'
     }
     bodynames = {
     'tfidf': "TfIdf(body)",
-    'lda': 'LDA(body)'
+    'lda': 'LDA(body)',
+    'count': 'Count(body)'
     }
     metanames = {
     'tfidf': "TfIdf(meta)",
@@ -55,6 +61,9 @@ def make_classifier(dictionary, classifier = 'svc', body_kind = 'tfidf', meta_ki
         clf = sklearn.ensemble.ExtraTreesClassifier(random_state=0, n_estimators=100, oob_score=True, bootstrap=True, n_jobs=4)
     elif  classifier == 'nb':
         clf = sklearn.naive_bayes.MultinomialNB()
+        #clf = sklearn.naive_bayes.GaussianNB()
+    elif classifier == 'nb_bin':
+        clf = sklearn.naive_bayes.BernoulliNB(binarize=0.0)
 
     body_pipe = meta_pipe = None
     
@@ -64,6 +73,9 @@ def make_classifier(dictionary, classifier = 'svc', body_kind = 'tfidf', meta_ki
         body_pipe = make_tfidf_matrix_pipeline(dictionary)
     elif body_kind == 'lda':
         body_pipe = make_lda_pipeline(dictionary, lda_num)
+    elif body_kind == 'count':
+        body_pipe = make_body_count_pipeline(len(dictionary))
+
     if meta_kind == 'tfidf':
         meta_pipe = make_tfidf_matrix_pipeline(dictionary)
         meta_i = 1
@@ -77,6 +89,9 @@ def make_classifier(dictionary, classifier = 'svc', body_kind = 'tfidf', meta_ki
     if meta_pipe:
         features.append(('meta', Pipeline(
                 [('selector', ItemPicker(meta_i)), ('feature', meta_pipe)])))
+
+
+
     assert len(features) > 0
 
     pipe = Pipeline([

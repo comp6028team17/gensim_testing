@@ -9,7 +9,7 @@ import sklearn
 with open(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))+"/stop_words.json") as f:
     stoplist = set(json.load(f))
 
-def make_proportional(X, y, min_size = 100):
+def make_proportional(y, min_size = 100):
     counts = np.bincount(y)
     min_size = min(counts[counts>min_size])
     class_inds = (np.where(y == i)[0] for i in range(max(y)+1))
@@ -17,17 +17,18 @@ def make_proportional(X, y, min_size = 100):
         [np.random.choice(inds, size=min_size, replace=False, p=None) for inds in class_inds 
          if len(inds) >= min_size]
     ).flatten()
-    return (X[indices], y[indices])
+    return (indices, y[indices])
 
 def tt_split(X, y, proportional=False, min_size = 1, test_size = 0.25):
     if proportional:
-        prop_X, prop_y = make_proportional(np.array(X), y, min_size=min_size)
+        inds, prop_y = make_proportional(np.array(X), y, min_size=min_size)
+        prop_X = X[inds]
         ind_train, ind_test = next(iter(sklearn.cross_validation.StratifiedShuffleSplit(prop_y, test_size = test_size)))
         X_train , X_test, y_train, y_test = (prop_X[ind_train], prop_X[ind_test], prop_y[ind_train], prop_y[ind_test])
     else:
-        X_train, X_test, y_train, y_test = sklearn.cross_validation.train_test_split(X, y)
+        X_train, X_test, y_train, y_test, ind_train, ind_test = sklearn.cross_validation.train_test_split(X, y, range(len(X)))
 
-    return (X_train, X_test, y_train, y_test)
+    return (X_train, X_test, y_train, y_test, ind_train, ind_test)
 
 def loadSplitJsonLines(fname):
     ''' Load every file matching the sequence fname.aa, fname.ab ... fname.zz

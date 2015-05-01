@@ -15,6 +15,8 @@ with open(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()
     stoplist = set(json.load(f))
 
 
+
+
 class LDAModel(BaseEstimator, TransformerMixin):
 
     def __init__(self, dictionary, num_topics):
@@ -50,6 +52,20 @@ class ItemPicker(BaseEstimator, TransformerMixin):
 
     def transform(self, X, y=None):
         return [x[self.index] for x in X]
+
+
+class CorpusCount(BaseEstimator, TransformerMixin):
+    def __init__(self, num_words):
+        self.num_words = num_words
+        
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X, y=None):
+        ret = np.zeros((len(X), self.num_words))
+        for i, row in enumerate(X):
+            ret[i] = np.bincount([x[0] for x in row], minlength = self.num_words)
+        return ret
 
 
 class TopicMatrixBuilder(BaseEstimator, TransformerMixin):
@@ -126,7 +142,7 @@ class MetaSanitiser(BaseEstimator, TransformerMixin):
 
         return out
 
-class MetaMatrixBuilder(BaseEstimator, TransformerMixin):
+class CountMatrixBuilder(BaseEstimator, TransformerMixin):
     def __init__(self, min_word_count = 4):
         self.min_word_count = min_word_count
         self.featureset = []

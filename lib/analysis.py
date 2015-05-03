@@ -2,15 +2,80 @@ import matplotlib.pyplot as plt
 import numpy as np
 import collections
 import sklearn
+from sklearn.pipeline import Pipeline
 
-def plot_confusion_matrix(cm, title='Confusion matrix', labels=None, cmap=plt.cm.Blues):
+
+def red(s):
+    return "\x1b[31m{}\x1b[0m".format(s)
+
+class ExampleInspector():
+    def __init__(self, dictionary, clf, X_test, y_test, predicted, meta, ind_test, dmoz_encoder):
+        self.dictionary = dictionary
+        self.y_test = y_test
+        self.predicted = predicted
+        self.dmoz_encoder = dmoz_encoder
+        self.ind_test = ind_test
+        self.meta = meta
+        self.clf = clf
+        self.X_test = X_test
+
+    def get_confusion(self, actually_was=None, predicted_as=None, predicted_on_guess = 1, only_failures=False):
+        
+        if only_failures:
+            filtered = np.where(1-np.equal(self.predicted, self.y_test))[0]
+        else:
+            filtered = np.arange(len(self.y_test))
+        
+        fail_name = as_name = was_name = guess_name = ""
+        filta = lambda c: True
+        filtb = lambda c: True
+        
+        if only_failures:
+            fail_name = "incorrectly classified "
+        if predicted_as is not None:
+            as_name = "predicted as '{}'".format(self.dmoz_encoder.inverse_transform(predicted_as))        
+            filta = (lambda c: c == predicted_as)
+        if actually_was is not None:
+            was_name = "of class '{}'".format(self.dmoz_encoder.inverse_transform(actually_was))
+            filtb = (lambda c: c == actually_was)
+        if predicted_on_guess > 1:
+            guess_name = "on guess {}".format(predicted_on_guess)
+        
+        name = " ".join([text for text in [fail_name, "samples", was_name, as_name, guess_name] if text])
+        print name+"\n"
+        
+        meta_test = [self.meta[i] for i in self.ind_test]
+        guess_nums = np.fliplr(np.argsort(self.clf.decision_function(self.X_test)))
+        guesses = self.dmoz_encoder.inverse_transform(guess_nums)
+        probs = self.clf.decision_function(self.X_test)
+        transformed = Pipeline(self.clf.steps[:2]).transform(self.X_test)
+        weights = self.clf.steps[2][1].coef_
+        
+        
+        
+        for x in [x for x in filtered if filta(guess_nums[x][predicted_on_guess-1]) and filtb(self.y_test[x])]:
+            redright = lambda gs: [(red(g) if g == meta_test[x][1][0] else g) for g in gs]
+            topg = guesses[x][:3]
+            print meta_test[x][0], ", ".join((meta_test[x][1][:3]))
+            print "Predicted as:", ", ".join(redright(topg))
+            
+            trf = transformed[x] * weights[self.predicted[x]]
+            inds = np.argsort(trf)[::-1]
+            best = [self.dictionary[i] for i in inds][:9]
+            print "{} words: {}".format(topg[0].capitalize(), ", ".join(best))
+            print
+
+def plot_confusion_matrix(cm, title='Confusion matrix', labels=None, cmap=plt.cm.Blues, showwarnings=True):
     """ Plot a confusion matrix as a matrix of coloured squares """
 
     plt.figure(figsize=(7, 6))
     im = cm.astype(float)
-
-    im[np.where(cm!=0)] = np.log(cm[cm!=0])
-
+    #print np.mean(im, axis=1)
+    im = (im.T/np.sum(im, axis=1)).T * 100
+    #print im
+    #im[np.where(cm!=0)] = np.log(im[cm!=0])
+    im[np.where(im!=0)] = np.log(im[im!=0])
+    #im[np.where(im==0)] = 0
     labels = labels if labels is not None else range(len(cm))
     plt.imshow(im, interpolation='nearest', cmap=cmap)
     if title: plt.title(title)
@@ -32,6 +97,8 @@ def plot_confusion_matrix(cm, title='Confusion matrix', labels=None, cmap=plt.cm
                 col = 'w'
             else:
                 col = 'k'
+            if showwarnings == True and x != y and cm[y, x] > cm[y, y]/5:
+                col = 'r'
             plt.text(x, y, cm[y, x], color = col, ha='center', va='center', weight='bold')
 
 

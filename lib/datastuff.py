@@ -59,13 +59,14 @@ if __name__ == '__main__':
     main()
 
 
-def encode_dmoz_categories(dmoz_categories):
+def encode_dmoz_categories(dmoz_categories, level=0):
     # Build a list of all top-level topics
-    topcategories = set(topic[0] for topic in dmoz_categories)
+    topcategories = set(topic[min(level, len(topic)-1)] for topic in dmoz_categories)
     # Represent the topics in an alternative way
     heirarchal_categories = lambda max_depth: [['; '.join(topics[:ti+1]) for ti, t in enumerate(topics) if ti < max_depth] for topics in dmoz_categories]
     # Top categories
-    top_categories = [x[0] for x in heirarchal_categories(1)]
+    #top_categories = [x[min(level, len(x)-1)] for x in heirarchal_categories(2)]
+    top_categories = [x[min(level, len(x) - 1)] for x in dmoz_categories] #[x[min(level, len(x)-1)] for x in heirarchal_categories(1)]
     # Encoder
     dmoz_encoder = sklearn.preprocessing.LabelEncoder().fit(top_categories)
     # Classes

@@ -23,7 +23,7 @@ def tt_split(X, y, proportional=False, min_size = 1, test_size = 0.25):
     if proportional:
         inds, prop_y = make_proportional(np.array(X), y, min_size=min_size)
         prop_X = X[inds]
-        ind_train, ind_test = next(iter(sklearn.cross_validation.StratifiedShuffleSplit(prop_y, test_size = test_size)))
+        ind_train, ind_test = next(iter(sklearn.cross_validation.StratifiedK(prop_y, test_size = test_size)))
         X_train , X_test, y_train, y_test = (prop_X[ind_train], prop_X[ind_test], prop_y[ind_train], prop_y[ind_test])
     else:
         X_train, X_test, y_train, y_test, ind_train, ind_test = sklearn.cross_validation.train_test_split(X, y, range(len(X)))
@@ -59,7 +59,15 @@ if __name__ == '__main__':
     main()
 
 
-def encode_dmoz_categories(dmoz_categories, level=0):
+def encode_dmoz_categories(dmoz_categories, corpus, level=0, minwords = 0):
+    dmoz_categories = np.array(dmoz_categories)
+
+    # Replace category of empty websites with 'none'
+    if minwords > 0:
+        empties = [i for i, doc in enumerate(corpus) if len(doc) < minwords]
+        if len(empties) > 0:
+            dmoz_categories[empties] = [['none']]
+
     # Build a list of all top-level topics
     topcategories = set(topic[min(level, len(topic)-1)] for topic in dmoz_categories)
     # Represent the topics in an alternative way
@@ -71,4 +79,7 @@ def encode_dmoz_categories(dmoz_categories, level=0):
     dmoz_encoder = sklearn.preprocessing.LabelEncoder().fit(top_categories)
     # Classes
     classes = dmoz_encoder.transform(top_categories)
+
+
+
     return (classes, top_categories, dmoz_encoder)

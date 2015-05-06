@@ -3,7 +3,7 @@ import numpy as np
 import collections
 import sklearn
 from sklearn.pipeline import Pipeline
-
+import sklearn.metrics
 
 def red(s):
     return "\x1b[31m{}\x1b[0m".format(s)
@@ -65,7 +65,7 @@ class ExampleInspector():
             print "{} words: {}".format(topg[0].capitalize(), ", ".join(best))
             print
 
-def plot_confusion_matrix(cm, title='Confusion matrix', labels=None, cmap=plt.cm.Blues, showwarnings=True):
+def plot_confusion_matrix(cm, title='Confusion matrix', labels=None, cmap=plt.cm.Blues, showwarnings=True, scores = None):
     """ Plot a confusion matrix as a matrix of coloured squares """
 
     plt.figure(figsize=(7, 6))
@@ -90,8 +90,9 @@ def plot_confusion_matrix(cm, title='Confusion matrix', labels=None, cmap=plt.cm
     for y in range(cm.shape[1]):
         rowsum = float(np.sum(cm[y, :]))
         if rowsum > 0:
-            txt = 'Precision: {:.2}'.format(cm[y, y] / rowsum)
-            plt.text(cm.shape[0]+0.3, y, txt, va='center')
+            if scores is not None:
+                txt = 'F1 score: {:.2}'.format(scores[y])
+                plt.text(cm.shape[0]+0.3, y, txt, va='center')
         for x in range(cm.shape[0]):
             if im[y, x] > (np.max(im)*0.5):
                 col = 'w'
@@ -150,4 +151,4 @@ def accuracy_of_top_n_guesses(clf, X, y, n=None):
 
 
 def print_score_accuracy(scores):
-    print "Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2)
+    print "Accuracy: %0.3f (+/- %0.2f)" % (scores.mean(), scores.std() * 2)

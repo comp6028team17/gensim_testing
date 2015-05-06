@@ -33,12 +33,12 @@ def make_classifier(dictionary, corp_type='both', feature='tfidf', classifier = 
     corpnames = ['body', 'meta', 'both']
 
     if classifier == 'svc_gridsearch': 
-        param_grid = [{'C': [0.05, 0.08, 0.1, 0.11, 0.13]}]
+        param_grid = [{'C': [0.03, 0.035, 0.037, 0.04, 0.042, 0.045]}]
         #param_grid = [{'C': [0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19]}]
         svc = sklearn.svm.LinearSVC(class_weight=class_weight)
         clf = sklearn.grid_search.GridSearchCV(svc, param_grid, verbose=3)
     elif classifier == 'svc':
-        clf = sklearn.svm.LinearSVC(class_weight=class_weight, C = 0.08)
+        clf = sklearn.svm.LinearSVC(class_weight=class_weight, C = 0.04)
     elif classifier == 'knn': 
         clf = sklearn.neighbors.KNeighborsClassifier()
     elif classifier == 'trees':
